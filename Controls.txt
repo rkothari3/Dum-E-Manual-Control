@@ -1,0 +1,6 @@
+13 Base Swivel
+12 Base Up/down
+14 Arm Big servo
+27 Arm small servo
+26 Gripper up/down
+25 Gripper open/close 
