@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUM-E Control Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #faf8f3;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #666;
+            --accent: #ff6b35;
+            --accent-hover: #ff8555;
+            --border: #e0ddd5;
+            --success: #2d7a4f;
+            --error: #c73e1d;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .right-panel {
+            width: 380px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+        button {
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            transition: all 0.15s;
+        }
+        button:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        #status {
+            font-size: 11px;
+            padding: 6px 12px;
+            border: 2px solid;
+            font-weight: 700;
+        }
+        .connected {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        .disconnected {
+            background: transparent;
+            border-color: var(--error);
+            color: var(--error);
+        }
+        .image-container {
+            flex: 1;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            animation: fadeIn 0.6s forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        .servo-control {
+            display: grid;
+            grid-template-columns: 120px 20px 2fr 20px;
+            gap: 10px;
+            align-items: center;
+            font-size: 11px;
+        }
+        .servo-control label {
+            font-weight: 700;
+        }
+        .servo-control .keys {
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .servo-control input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: var(--border);
+            outline: none;
+            transition: opacity 0.2s;
+        }
+        .servo-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .servo-control input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .servo-control input[type="range"]:disabled {
+            opacity: 0.3;
+        }
+        .servo-control .value {
+            text-align: right;
+            font-weight: 700;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="left-panel">
+        <div class="image-container">
+            <img src="6dof_robotic_arm_img.png" alt="6-DOF Robotic Arm">
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="header">
+            <h1>DUM-E CONTROL</h1>
+            <span id="status" class="disconnected">OFF</span>
+        </div>
+
+        <div class="controls">
+            <button id="connectBtn">CONNECT</button>
+            <button id="resetBtn" disabled>RESET</button>
+        </div>
+
+        <div class="servo-control">
+            <label>Base Swivel</label>
+            <span class="keys">Q/W</span>
+            <input type="range" id="servo1" min="0" max="180" value="90" disabled>
+            <span class="value" id="value1">90°</span>
+        </div>
+
+        <div class="servo-control">
+            <label>Base Up/Down</label>
+            <span class="keys">A/S</span>
+            <input type="range" id="servo2" min="0" max="180" value="90" disabled>
+            <span class="value" id="value2">90°</span>
+        </div>
+
+        <div class="servo-control">
+            <label>Arm Big</label>
+            <span class="keys">Z/X</span>
+            <input type="range" id="servo3" min="0" max="180" value="90" disabled>
+            <span class="value" id="value3">90°</span>
+        </div>
+
+        <div class="servo-control">
+            <label>Arm Small</label>
+            <span class="keys">E/R</span>
+            <input type="range" id="servo4" min="0" max="180" value="90" disabled>
+            <span class="value" id="value4">90°</span>
+        </div>
+
+        <div class="servo-control">
+            <label>Gripper Up/Down</label>
+            <span class="keys">D/F</span>
+            <input type="range" id="servo5" min="0" max="180" value="90" disabled>
+            <span class="value" id="value5">90°</span>
+        </div>
+
+        <div class="servo-control">
+            <label>Gripper Open/Close</label>
+            <span class="keys">C/V</span>
+            <input type="range" id="servo6" min="0" max="180" value="90" disabled>
+            <span class="value" id="value6">90°</span>
+        </div>
+    </div>
+
+    <script>
+        let port;
+        let writer;
+        const connectBtn = document.getElementById('connectBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const status = document.getElementById('status');
+        const sliders = [];
+        const values = [];
+
+        // Servo control key mappings: [decrease, increase]
+        const keyMaps = [
+            ['q', 'w'],  // Base Swivel
+            ['a', 's'],  // Base Up/Down
+            ['z', 'x'],  // Arm Big
+            ['e', 'r'],  // Arm Small
+            ['d', 'f'],  // Gripper Up/Down
+            ['c', 'v']   // Gripper Open/Close
+        ];
+
+        // Initialize sliders
+        for (let i = 1; i <= 6; i++) {
+            sliders[i] = document.getElementById(`servo${i}`);
+            values[i] = document.getElementById(`value${i}`);
+
+            let prevValue = 90;
+            sliders[i].addEventListener('input', async (e) => {
+                const newValue = parseInt(e.target.value);
+                values[i].textContent = newValue + '°';
+
+                if (writer && newValue !== prevValue) {
+                    const key = newValue > prevValue ? keyMaps[i-1][1] : keyMaps[i-1][0];
+                    await sendCommand(key);
+                }
+                prevValue = newValue;
+            });
+        }
+
+        // Connect/Disconnect
+        connectBtn.addEventListener('click', async () => {
+            if (port) {
+                await disconnect();
+            } else {
+                await connect();
+            }
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', async () => {
+            if (writer) {
+                await sendCommand('0');
+                // Reset all sliders to center
+                for (let i = 1; i <= 6; i++) {
+                    sliders[i].value = 90;
+                    values[i].textContent = '90°';
+                }
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', async (e) => {
+            if (!writer) return;
+
+            const key = e.key.toLowerCase();
+            const validKeys = ['q', 'w', 'a', 's', 'z', 'x', 'e', 'r', 'd', 'f', 'c', 'v', '0'];
+
+            if (validKeys.includes(key)) {
+                e.preventDefault();
+                await sendCommand(key);
+
+                // Update slider position based on key pressed
+                if (key !== '0') {
+                    for (let i = 0; i < 6; i++) {
+                        if (key === keyMaps[i][0]) {
+                            // Decrease
+                            const newVal = Math.max(0, parseInt(sliders[i+1].value) - 5);
+                            sliders[i+1].value = newVal;
+                            values[i+1].textContent = newVal + '°';
+                        } else if (key === keyMaps[i][1]) {
+                            // Increase
+                            const newVal = Math.min(180, parseInt(sliders[i+1].value) + 5);
+                            sliders[i+1].value = newVal;
+                            values[i+1].textContent = newVal + '°';
+                        }
+                    }
+                } else {
+                    // Reset to center
+                    for (let i = 1; i <= 6; i++) {
+                        sliders[i].value = 90;
+                        values[i].textContent = '90°';
+                    }
+                }
+            }
+        });
+
+        async function connect() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                writer = port.writable.getWriter();
+
+                connectBtn.textContent = 'DISCONNECT';
+                status.textContent = 'ONLINE';
+                status.className = 'connected';
+                resetBtn.disabled = false;
+
+                // Enable sliders
+                for (let i = 1; i <= 6; i++) {
+                    sliders[i].disabled = false;
+                }
+            } catch (error) {
+                alert('Failed to connect: ' + error.message);
+            }
+        }
+
+        async function disconnect() {
+            try {
+                if (writer) {
+                    writer.releaseLock();
+                }
+                await port.close();
+                port = null;
+                writer = null;
+
+                connectBtn.textContent = 'CONNECT';
+                status.textContent = 'OFF';
+                status.className = 'disconnected';
+                resetBtn.disabled = true;
+
+                // Disable sliders
+                for (let i = 1; i <= 6; i++) {
+                    sliders[i].disabled = true;
+                }
+            } catch (error) {
+                console.error('Disconnect error:', error);
+            }
+        }
+
+        async function sendCommand(key) {
+            if (writer) {
+                const encoder = new TextEncoder();
+                await writer.write(encoder.encode(key));
+            }
+        }
+    </script>
+</body>
+</html>
